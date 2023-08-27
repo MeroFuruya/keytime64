@@ -98,8 +98,7 @@ class KeyGui:
     self.keysLabel = Label(master, text="Keys")
     self.keysLabel.pack()
     
-    self.keysEntry = Entry(master)
-    self.keysEntry.insert(0, values["keys"])
+    self.keysEntry = Button(master, text=values["keys"], command=lambda: self.keysEntry.configure(text=self.capture_hotkey()))
     self.keysEntry.pack()
     
     self.timeLabel = Label(master, text="Time")
@@ -114,7 +113,6 @@ class KeyGui:
     
     self.windowVar = StringVar(value=values["window"])
     self.windowEntry = OptionMenu(master, self.windowVar, *self.get_windows())
-    # self.windowEntry.insert(0, values["window"])
     self.windowEntry.pack()
     
     self.ActiveVar = IntVar(value=1 if str(values["active"]).lower() == "true" else 0)
@@ -134,7 +132,7 @@ class KeyGui:
     if self.save_callback is not None:
       self.save_callback(self.id, {
         "name": self.nameEntry.get(),
-        "keys": self.keysEntry.get(),
+        "keys": "",
         "time": int(self.timeEntry.get()) if self.timeEntry.get() != "" else 0,
         "window": self.windowVar.get(),
         "active": self.ActiveVar.get() == 1
@@ -158,6 +156,17 @@ class KeyGui:
           windows.append(text)
     EnumWindows(callback, None)
     return windows
+  
+  def capture_hotkey(self) -> str:
+    keys = []
+    while True:
+      for i in range(256):
+        if GetAsyncKeyState(i) != 0:
+          keys.append(i)
+          break
+      if len(keys) > 0 and GetKeyState(0x1B) != 0:
+        break
+    return "+".join(keys)
 
 root = Tk()
 my_gui = MainWindow(root)
